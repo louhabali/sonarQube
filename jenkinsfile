@@ -113,6 +113,9 @@ pipeline {
         }
 
         stage('Deploy Application') {
+            when {
+                branch 'main'
+            }
             steps {
                 echo "Deploying service stack to ${DEPLOY_DIR}..."
                 sh '''
