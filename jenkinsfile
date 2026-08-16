@@ -111,10 +111,19 @@ pipeline {
                 sh '${COMPOSE} build'
             }
         }
-
+        stage('Debug Env') {
+            steps {
+                sh 'echo "BRANCH_NAME: ${BRANCH_NAME}"'
+                sh 'echo "GIT_BRANCH: ${GIT_BRANCH}"'
+            }
+}
         stage('Deploy Application') {
             when {
-                branch 'main'
+                anyOf {
+                    branch 'main'
+                    environment name: 'CHANGE_TARGET', value: 'main'
+                    expression { env.GIT_BRANCH?.endsWith('main') }
+                }
             }
             steps {
                 echo "Deploying service stack to ${DEPLOY_DIR}..."
