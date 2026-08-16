@@ -40,7 +40,6 @@ pipeline {
                     }
                     steps {
                         dir('client') {
-                            // Fixed: Removed the redundant nested 'sh' call
                             sh 'npm ci --no-audit --no-fund && npm run test:ci'
                         }
                     }
@@ -50,9 +49,6 @@ pipeline {
                     steps {
                         sh '''
                             for dir in gateway_service user_service product_service media_service; do
-                                echo "=========================================="
-                                echo " Testing: $dir"
-                                echo "=========================================="
                                 (cd "$dir" && chmod +x mvnw && ./mvnw clean test)
                             done
                         '''
@@ -88,11 +84,15 @@ pipeline {
                 }
             }
         }
-
-        stage('SonarQube Quality Gate') {
+        stage('Quality Gate Check') {
             steps {
                 timeout(time: 5, unit: 'MINUTES') {
-                    waitForQualityGate abortPipeline: true
+                    script {
+                        def qg = waitForQualityGate()
+                        if (qg.status != 'OK') {
+                            error "Pipeline aborted due to SonarQube quality gate failure: ${qg.status}"
+                        }
+                    }
                 }
             }
         }
@@ -136,11 +136,21 @@ pipeline {
             sh 'rm -f .env'
         }
         success {
-            emailext (
-                to: "${env.EMAIL}",
-                subject: "✅ SUCCESS: ${env.JOB_NAME} [Build #${env.BUILD_NUMBER}]",
-                body: "Pipeline completed successfully and deployed to ${env.DEPLOY_DIR}.\n\nLogs: ${env.BUILD_URL}"
-            )
+            script {
+                if (env.BRANCH_NAME == 'main' || env.GIT_BRANCH == 'origin/main') {
+                    emailext (
+                        to: "${env.EMAIL}",
+                        subject: "✅ SUCCESS & DEPLOYED: ${env.JOB_NAME} [Build #${env.BUILD_NUMBER}]",
+                        body: "Pipeline passed, quality gates cleared, and changes successfully deployed to ${env.DEPLOY_DIR}.\n\nLogs: ${env.BUILD_URL}"
+                    )
+                } else {
+                    emailext (
+                        to: "${env.EMAIL}",
+                        subject: "✅ PR TESTS PASSED: ${env.JOB_NAME} [Build #${env.BUILD_NUMBER}]",
+                        body: "Pull request branch tests and SonarQube quality gate passed successfully! Safe to merge into main.\n\nLogs: ${env.BUILD_URL}"
+                    )
+                }
+            }
         }
         failure {
             emailext (
