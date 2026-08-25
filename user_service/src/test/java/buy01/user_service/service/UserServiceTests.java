@@ -25,8 +25,7 @@ import buy01.user_service.model.User;
 import buy01.user_service.producer.UserEventProducer;
 import buy01.user_service.repo.UserRepository;
 import buy01.user_service.security.JwtUtil;
-import buy01.user_service.service.UserBlacklistService;
-import buy01.user_service.service.UserService;
+
 
 @ExtendWith(MockitoExtension.class)
 class UserServiceTests {

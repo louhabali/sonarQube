@@ -71,6 +71,6 @@ public ResponseEntity<Product> updateProduct(
             @RequestHeader("X-User-Id") String userId,
             @RequestHeader(value = "X-Role") String userRole
     ) {
-        productService.deleteProduct(id, userId, userRole);
+        productService.deleteProduct(id, userId);
     }
 }

@@ -6,12 +6,10 @@ import buy01.product_service.model.Product;
 import buy01.product_service.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
 
-import org.apache.coyote.BadRequestException;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
-import org.apache.coyote.BadRequestException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -118,7 +116,7 @@ public class ProductService {
         return repository.save(product);
     }
 
-    public void deleteProduct(String id, String userId, String userRole) {
+    public void deleteProduct(String id, String userId) {
         Product product = getProduct(id);
         verifyOwnership(product, userId);
         repository.delete(product);
