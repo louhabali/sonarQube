@@ -168,7 +168,7 @@ class ProductServiceTest {
         void shouldDeleteProduct() {
                 when(repository.findById("1")).thenReturn(Optional.of(product));
 
-                service.deleteProduct("1", "seller-1", "SELLER");
+                service.deleteProduct("1", "seller-1");
 
                 verify(repository).delete(product);
         }

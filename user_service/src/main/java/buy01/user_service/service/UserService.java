@@ -30,9 +30,8 @@ public class UserService {
     private final UserEventProducer producer;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private static final String USERNF = "user not found";
     private final JwtUtil jwtUtil;
-    private final UserBlacklistService blacklistService;
-
     public Map<String, Object> register(String username, String email, String password, String role, String avatarUrl) {
         String cleanEmail = email.toLowerCase().trim();
         if (userRepository.findByEmail(cleanEmail).isPresent()) {
@@ -62,10 +61,10 @@ public class UserService {
     }
 
     public Map<String, Object> login(String email, String password) {
-        System.out.println("Login attempt for email: " + email);
+       
         Optional<User> user = userRepository.findByEmail(email);
         if (user.isEmpty()) {
-            throw new BadRequestException("User not found");
+            throw new BadRequestException(USERNF);
         }
         if (!passwordEncoder.matches(password, user.get().getPassword())) {
             throw new BadRequestException("Invalid password");
@@ -82,7 +81,7 @@ public class UserService {
     public ProfileResponse getProfile(String userId) {
        
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new RuntimeException(USERNF));
 
         return new ProfileResponse(
                 user.getId(),
@@ -96,7 +95,7 @@ public class UserService {
     @CachePut(value = "profiles", key = "#userId")
     public ProfileResponse updateProfile(String userId, ProfileRequest profile) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new RuntimeException(USERNF));
 
         if (profile.getUsername() == null || profile.getUsername().trim().isEmpty()) {
             throw new BadRequestException("Username cannot be empty");
@@ -104,7 +103,7 @@ public class UserService {
         if (profile.getEmail() == null || profile.getEmail().trim().isEmpty()) {
             throw new BadRequestException("Email cannot be empty");
         }
-        if (profile.getRole().name()!="CLIENT" && profile.getRole().name()!="SELLER") {
+        if (!profile.getRole().name().equals("CLIENT") && !profile.getRole().name().equals("SELLER")) {
             throw new BadRequestException("Invalid role. Must be CLIENT or SELLER");
         }   
 
@@ -140,12 +139,11 @@ public class UserService {
     @CacheEvict(value = "profiles", key = "#userId")
     public Map<String, Object> deleteProfile(String userId) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-        System.out.println("11111111111111");
+                .orElseThrow(() -> new RuntimeException(USERNF));
+       
         userRepository.delete(user);
         // Send UserDeletedEvent to Kafka
         producer.sendUserDeletedEvent(new UserDeletedEvent(userId));
-        System.out.println("UserDeletedEvent sent for userId: " + userId);
         Map<String, Object> response = new HashMap<>();
         response.put("success", true);
         response.put("message", "User deleted successfully");
