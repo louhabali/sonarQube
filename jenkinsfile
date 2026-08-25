@@ -84,6 +84,7 @@ pipeline {
                               -Dsonar.java.binaries=gateway_service/target/classes,user_service/target/classes,product_service/target/classes,media_service/target/classes \
                               -Dsonar.coverage.jacoco.xmlReportPaths=**/target/site/jacoco/jacoco.xml \
                               -Dsonar.javascript.lcov.reportPaths=client/coverage/lcov.info \
+                              -Dsonar.java.libraries=**/target/dependency/*.jar \
                               -Dsonar.coverage.exclusions=**/*Application.java,**/config/**,**/dto/**,**/entity/**,**/entities/**,**/model/**,client/src/main.ts,client/src/environments/** \
                               -Dsonar.exclusions=**/node_modules/**,**/target/**,**/*.spec.ts,**/config/**,**/dto/**,**/entity/**
                         '''
