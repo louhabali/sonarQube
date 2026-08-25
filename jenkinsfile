@@ -49,7 +49,7 @@ pipeline {
                     steps {
                         sh '''
                             for dir in gateway_service user_service product_service media_service; do
-                                (cd "$dir" && chmod +x mvnw && ./mvnw clean test jacoco:report)
+                                (cd "$dir" && chmod +x mvnw && ./mvnw clean test)
                             done
                         '''
                     }
@@ -76,7 +76,6 @@ pipeline {
                     withSonarQubeEnv('SonarQube') {
                         sh """
                             sonar-scanner \
-                              -Dproject.settings=sonar-project.properties \
                               -Dsonar.host.url=${env.SONAR_HOST_URL} \
                               -Dsonar.login=${SONAR_TOKEN} \
                               -Dsonar.token=${SONAR_TOKEN}

@@ -25,16 +25,12 @@ module.exports = function (config) {
     jasmineHtmlReporter: {
       suppressAll: true // removes duplicated traces
     },
-   coverageReporter: {
-  dir: require('path').join(__dirname, './coverage'),
-  subdir: '.',
-  reporters: [
-    { type: 'html' },
-    { type: 'lcovonly' }, // Generates coverage/lcov.info
-    { type: 'text-summary' }
-  ]
-},
-    reporters: ['progress', 'kjhtml', 'coverage'],
+    coverageReporter: {
+      dir: require('path').join(__dirname, './coverage/client'),
+      subdir: '.',
+      reporters: [{ type: 'html' }, { type: 'text-summary' }]
+    },
+    reporters: ['progress', 'kjhtml'],
     port: 9876,
     colors: true,
     logLevel: config.LOG_INFO,
