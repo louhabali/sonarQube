@@ -40,6 +40,7 @@ pipeline {
                     }
                     steps {
                         dir('client') {
+                            sh 'npm install --save-dev @vitest/coverage-v8' 
                             sh 'npm ci --no-audit --no-fund && npm run test:ci'
                         }
                     }
@@ -49,14 +50,14 @@ pipeline {
                     steps {
                         sh '''
                             for dir in gateway_service user_service product_service media_service; do
-                                (cd "$dir" && chmod +x mvnw && ./mvnw clean test)
+                                (cd "$dir" && chmod +x mvnw && ./mvnw clean test jacoco:report)
                             done
                         '''
                     }
                     post {
                         always {
                             junit allowEmptyResults: true, testResults: '**/target/surefire-reports/*.xml'
-                            jacoco execPattern: '**/target/*.exec'
+                            jacoco execPattern: '**/target/*.exec', classPattern: '**/target/classes'
                         }
                     }
                 }
@@ -77,13 +78,19 @@ pipeline {
                         sh """
                             sonar-scanner \
                               -Dsonar.host.url=${env.SONAR_HOST_URL} \
-                              -Dsonar.login=${SONAR_TOKEN} \
-                              -Dsonar.token=${SONAR_TOKEN}
+                              -Dsonar.token=${SONAR_TOKEN} \
+                              -Dsonar.projectKey=${env.APP_NAME} \
+                              -Dsonar.sources=. \
+                              -Dsonar.java.binaries=**/target/classes \
+                              -Dsonar.coverage.jacoco.xmlReportPaths=**/target/site/jacoco/jacoco.xml \
+                              -Dsonar.javascript.lcov.reportPaths=client/coverage/lcov.info \
+                              -Dsonar.exclusions=**/node_modules/**,**/target/**,**/*.spec.ts,**/config/**,**/dto/**,**/entity/**
                             """
                     }
                 }
             }
         }
+
         stage('Quality Gate Check') {
             steps {
                 timeout(time: 5, unit: 'MINUTES') {
@@ -111,12 +118,14 @@ pipeline {
                 sh '${COMPOSE} build'
             }
         }
+
         stage('Debug Env') {
             steps {
                 sh 'echo "BRANCH_NAME: ${BRANCH_NAME}"'
                 sh 'echo "GIT_BRANCH: ${GIT_BRANCH}"'
             }
-}
+        }
+
         stage('Deploy Application') {
             when {
                 anyOf {
