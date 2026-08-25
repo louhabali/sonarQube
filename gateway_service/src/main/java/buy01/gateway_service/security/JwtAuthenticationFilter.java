@@ -29,26 +29,17 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
+        ServerHttpRequest request = exchange.getRequest();
+        String path = request.getURI().getPath();
+        HttpMethod method = request.getMethod();
 
-        String path = exchange.getRequest().getURI().getPath();
-        HttpMethod method = exchange.getRequest().getMethod();
-        if (HttpMethod.OPTIONS.equals(method)) {
-            return chain.filter(exchange);
-        }
-      
-        // Public endpoints
-        if (path.startsWith("/api/auth/login") ||
-                path.startsWith("/api/auth/register") ||
-                (method == HttpMethod.GET && path.startsWith("/api/products")) ||
-                (method == HttpMethod.GET && path.startsWith("/api/uploads/")) ||
-                (HttpMethod.GET.equals(method) && path.startsWith("/api/media/")) ||
-                (HttpMethod.POST.equals(method) && path.equals("/api/media/avatars/public"))) {
+        if (isPublicEndpoint(method, path)) {
             return chain.filter(exchange);
         }
 
-        String authHeader = exchange.getRequest().getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
+        String authHeader = request.getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
 
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+        if (isInvalidAuthHeader(authHeader)) {
             return unauthorizedResponse(exchange, "Missing or invalid Authorization header");
         }
 
@@ -63,33 +54,57 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
         String userId = claims.get("userId", String.class);
         String jwtRole = claims.get("role", String.class);
 
-        // Check if user is blacklisted
+        return processUserValidation(exchange, chain, userId, username, jwtRole);
+    }
+
+    private boolean isPublicEndpoint(HttpMethod method, String path) {
+        if (HttpMethod.OPTIONS.equals(method)) {
+            return true;
+        }
+        if (path.startsWith("/api/auth/login") || path.startsWith("/api/auth/register")) {
+            return true;
+        }
+        if (HttpMethod.GET.equals(method)) {
+            return path.startsWith("/api/products")
+                    || path.startsWith("/api/uploads/")
+                    || path.startsWith("/api/media/");
+        }
+        return HttpMethod.POST.equals(method) && path.equals("/api/media/avatars/public");
+    }
+
+    private boolean isInvalidAuthHeader(String authHeader) {
+        return authHeader == null || !authHeader.startsWith("Bearer ");
+    }
+
+    private Mono<Void> processUserValidation(ServerWebExchange exchange, GatewayFilterChain chain,
+                                             String userId, String username, String jwtRole) {
         return userBlacklistService.isBlacklisted(userId)
                 .flatMap(isBlacklisted -> {
                     if (Boolean.TRUE.equals(isBlacklisted)) {
                         return unauthorizedResponse(exchange, "User is blacklisted");
                     }
+                    return verifyUserAndForward(exchange, chain, userId, username, jwtRole);
+                });
+    }
 
-                    // Fetch fresh user verification
-                    return userServiceClient.getUserVerification(userId)
-                            .flatMap(userDto -> {
-                                if (!userDto.isExists()) {
-                                    return unauthorizedResponse(exchange, "User does not exist");
-                                }
+    private Mono<Void> verifyUserAndForward(ServerWebExchange exchange, GatewayFilterChain chain,
+                                           String userId, String username, String jwtRole) {
+        return userServiceClient.getUserVerification(userId)
+                .flatMap(userDto -> {
+                    if (!userDto.isExists()) {
+                        return unauthorizedResponse(exchange, "User does not exist");
+                    }
 
-                                // Use updated DB role; fallback to JWT role if DB role is null
-                                String activeRole = (userDto.getRole() != null) ? userDto.getRole() : jwtRole;
+                    String activeRole = (userDto.getRole() != null) ? userDto.getRole() : jwtRole;
 
-                                // Mutate request with updated headers and forward downstream
-                                ServerHttpRequest request = exchange.getRequest()
-                                        .mutate()
-                                        .header("X-User-Id", userId)
-                                        .header("X-Username", username)
-                                        .header("X-Role", activeRole)
-                                        .build();
+                    ServerHttpRequest request = exchange.getRequest()
+                            .mutate()
+                            .header("X-User-Id", userId)
+                            .header("X-Username", username)
+                            .header("X-Role", activeRole)
+                            .build();
 
-                                return chain.filter(exchange.mutate().request(request).build());
-                            });
+                    return chain.filter(exchange.mutate().request(request).build());
                 });
     }
 
