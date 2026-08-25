@@ -74,17 +74,19 @@ pipeline {
             steps {
                 withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
                     withSonarQubeEnv('SonarQube') {
-                        sh """
-                           sonar-scanner \
+                        sh '''
+                            sonar-scanner \
                               -Dsonar.host.url=${SONAR_HOST_URL} \
                               -Dsonar.token=${SONAR_TOKEN} \
                               -Dsonar.projectKey=${APP_NAME} \
-                              -Dsonar.sources=. \
-                              -Dsonar.java.binaries=**/target/classes \
+                              -Dsonar.sources=gateway_service/src/main/java,user_service/src/main/java,product_service/src/main/java,media_service/src/main/java,client/src \
+                              -Dsonar.tests=gateway_service/src/test/java,user_service/src/test/java,product_service/src/test/java,media_service/src/test/java \
+                              -Dsonar.java.binaries=gateway_service/target/classes,user_service/target/classes,product_service/target/classes,media_service/target/classes \
                               -Dsonar.coverage.jacoco.xmlReportPaths=**/target/site/jacoco/jacoco.xml \
                               -Dsonar.javascript.lcov.reportPaths=client/coverage/lcov.info \
-                              -Dsonar.exclusions=**/node_modules/**,**/target/**,**/*.spec.ts
-                            """
+                              -Dsonar.coverage.exclusions=**/*Application.java,**/config/**,**/dto/**,**/entity/**,**/entities/**,**/model/**,client/src/main.ts,client/src/environments/** \
+                              -Dsonar.exclusions=**/node_modules/**,**/target/**,**/*.spec.ts,**/config/**,**/dto/**,**/entity/**
+                        '''
                     }
                 }
             }
