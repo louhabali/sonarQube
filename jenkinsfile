@@ -78,12 +78,6 @@ pipeline {
                             sonar-scanner \
                               -Dsonar.host.url=${env.SONAR_HOST_URL} \
                               -Dsonar.token=${SONAR_TOKEN} \
-                              -Dsonar.projectKey=${env.APP_NAME} \
-                              -Dsonar.sources=. \
-                              -Dsonar.java.binaries=**/target/classes \
-                              -Dsonar.coverage.jacoco.xmlReportPaths=**/target/site/jacoco/jacoco.xml \
-                              -Dsonar.javascript.lcov.reportPaths=client/coverage/lcov.info \
-                              -Dsonar.exclusions=**/node_modules/**,**/target/**,**/*.spec.ts,**/config/**,**/dto/**,**/entity/**
                             """
                     }
                 }
