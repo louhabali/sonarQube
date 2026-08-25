@@ -1,0 +1,3 @@
+merge jenkins project with sonarqube :
+1. spinner + media types + error checks + exceptions and input validation.
+2. improve jenkinsfile if possible.
