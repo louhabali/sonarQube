@@ -30,7 +30,7 @@ public class UserService {
     private final UserEventProducer producer;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    private static final String USERNF = "user not found";
+    private static final String USERNF = "User not found";
     private final JwtUtil jwtUtil;
     public Map<String, Object> register(String username, String email, String password, String role, String avatarUrl) {
         String cleanEmail = email.toLowerCase().trim();
