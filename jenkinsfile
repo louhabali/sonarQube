@@ -75,9 +75,15 @@ pipeline {
                 withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
                     withSonarQubeEnv('SonarQube') {
                         sh """
-                            sonar-scanner \
-                              -Dsonar.host.url=${env.SONAR_HOST_URL} \
+                           sonar-scanner \
+                              -Dsonar.host.url=${SONAR_HOST_URL} \
                               -Dsonar.token=${SONAR_TOKEN} \
+                              -Dsonar.projectKey=${APP_NAME} \
+                              -Dsonar.sources=. \
+                              -Dsonar.java.binaries=**/target/classes \
+                              -Dsonar.coverage.jacoco.xmlReportPaths=**/target/site/jacoco/jacoco.xml \
+                              -Dsonar.javascript.lcov.reportPaths=client/coverage/lcov.info \
+                              -Dsonar.exclusions=**/node_modules/**,**/target/**,**/*.spec.ts
                             """
                     }
                 }
