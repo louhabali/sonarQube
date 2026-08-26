@@ -15,6 +15,6 @@ COPY certs/ /etc/nginx/certs/
 
 # Copies the browser build artifacts regardless of project name in dist
 COPY --from=build /app/dist/*/browser /usr/share/nginx/html/
-
+#
 EXPOSE 80 443
 CMD ["nginx", "-g", "daemon off;"]
