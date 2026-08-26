@@ -33,29 +33,54 @@ pipeline {
                 stage('Angular Frontend Tests') {
                     agent {
                         docker {
-                            image 'zenika/alpine-chrome:with-node'
+                            image 'node:22-bookworm'
                             args '-u 0 -v /tmp/npm-cache:/root/.npm'
                             reuseNode true
                         }
                     }
+
                     steps {
                         dir('client') {
-                            // sh 'npm ci --legacy-peer-deps --no-audit --no-fund && npm run test:ci'
                             sh '''
-                                echo "=== Node environment ==="
-                                node --version
-                                npm --version
-                                which node
-                                which npm
+                apt-get update
+                apt-get install -y chromium
 
-                                echo "=== Installing dependencies ==="
-                                npm ci --legacy-peer-deps --no-audit --no-fund
+                export CHROME_BIN=/usr/bin/chromium
 
-                                echo "=== Running Angular tests ==="
-                                npm run test:ci
-                            '''
+                node --version
+                npm --version
+                chromium --version
+
+                npm ci --legacy-peer-deps --no-audit --no-fund
+                npm run test:ci
+            '''
                         }
                     }
+                    // agent {
+                    //     docker {
+                    //         image 'zenika/alpine-chrome:with-node'
+                    //         args '-u 0 -v /tmp/npm-cache:/root/.npm'
+                    //         reuseNode true
+                    //     }
+                    // }
+                    // steps {
+                    //     dir('client') {
+                    //         // sh 'npm ci --legacy-peer-deps --no-audit --no-fund && npm run test:ci'
+                    //         sh '''
+                    //             echo "=== Node environment ==="
+                    //             node --version
+                    //             npm --version
+                    //             which node
+                    //             which npm
+
+                    //             echo "=== Installing dependencies ==="
+                    //             npm ci --legacy-peer-deps --no-audit --no-fund
+
+                //             echo "=== Running Angular tests ==="
+                //             npm run test:ci
+                //         '''
+                //     }
+                // }
                 }
 
                 stage('Java Microservices Unit Tests') {
