@@ -217,6 +217,7 @@ export class ProductPageComponent implements OnInit {
       this.isSaving = false;
     },
     error: (err) => {
+      console.log(err);
       this.error = err?.error?.errorMessage ?? 'Failed to update product details';
       this.isSaving = false;
     }

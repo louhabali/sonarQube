@@ -21,6 +21,7 @@ public class UserServiceClient {
                 // Handles 404 Not Found cleanly by returning exists = false
                 .onStatus(status -> status.equals(HttpStatus.NOT_FOUND), 
                         response -> Mono.empty())
+                // Parses JSON response: {"exists": true, "role": "SELLER"}
                 .bodyToMono(UserVerificationResponse.class)
                 .defaultIfEmpty(new UserVerificationResponse(false, null))
                 .doOnError(Throwable::printStackTrace);

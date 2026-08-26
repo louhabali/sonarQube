@@ -2,6 +2,9 @@ package buy01.user_service.producer;
 
 import buy01.user_service.event.UserDeletedEvent;
 import lombok.RequiredArgsConstructor;
+
+import java.util.ArrayList;
+
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
@@ -18,6 +21,6 @@ public class UserEventProducer {
                 event
         );
         
-       
+        System.out.println("UserDeletedEvent sent!");
     }
 }
