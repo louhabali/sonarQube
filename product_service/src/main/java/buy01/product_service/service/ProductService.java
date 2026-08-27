@@ -32,7 +32,7 @@ public class ProductService {
     public List<Product> getAllProducts() {
         return repository.findAll();
     }
-
+    
     public Product getProduct(String id) {
         return repository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Product not found"));

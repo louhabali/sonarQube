@@ -6,6 +6,7 @@ import { ProductService } from '../../services/product.service';
 import { CommonModule } from '@angular/common';
 import { UserService } from '../../services/user.service';
 import { HttpClient } from '@angular/common/http';
+import { finalize } from 'rxjs';
 @Component({
   selector: 'app-product-page',
   templateUrl: './product-page.component.html',
@@ -64,18 +65,26 @@ export class ProductPageComponent implements OnInit {
 
   loadProduct(id: string): void {
     this.isLoading = true;
-    this.productService.getProduct(id).subscribe({
+    this.error = null;
+    this.productService.getProduct(id).pipe(finalize(() => this.isLoading = false)).subscribe({
       next: (product) => {
-        this.product = product;
-        this.resetFormValues(product);
+        const normalizedProduct = this.normalizeProduct(product);
+        this.product = normalizedProduct;
+        this.resetFormValues(normalizedProduct);
         this.checkOwnership();
-        this.isLoading = false;
       },
       error: (err) => {
-        this.error = err?.error?.errorMessage ?? 'Failed to load product details';
-        this.isLoading = false;
+        this.error = err?.error?.errorMessage ?? err?.error?.message ?? err?.message ?? 'Failed to load product details';
       }
     });
+  }
+
+  private normalizeProduct(product: Product): Product {
+    const rawProduct = product as Product & { _id?: string | { $oid?: string } };
+    const rawId = rawProduct.id ?? rawProduct._id;
+    const id = typeof rawId === 'object' ? rawId?.$oid : rawId;
+
+    return { ...product, id };
   }
 
   private resetFormValues(product: Product): void {
@@ -209,17 +218,15 @@ export class ProductPageComponent implements OnInit {
     formData.append('images', file);
   });
 
-  this.productService.updateProduct(this.product.id!, formData).subscribe({
+  this.productService.updateProduct(this.product.id!, formData).pipe(finalize(() => this.isSaving = false)).subscribe({
     next: (updatedProduct) => {
-      this.product = updatedProduct;
-      this.resetFormValues(updatedProduct);
+      const normalizedProduct = this.normalizeProduct(updatedProduct);
+      this.product = normalizedProduct;
+      this.resetFormValues(normalizedProduct);
       this.editing = false;
-      this.isSaving = false;
     },
     error: (err) => {
-      console.log(err);
-      this.error = err?.error?.errorMessage ?? 'Failed to update product details';
-      this.isSaving = false;
+      this.error = err?.error?.errorMessage ?? err?.error?.message ?? err?.message ?? 'Failed to update product details';
     }
   });
 }
@@ -242,7 +249,7 @@ export class ProductPageComponent implements OnInit {
         this.router.navigate(['/']);
       },
       error: (err) => {
-        this.error = err?.error?.errorMessage ?? 'Failed to delete product';
+        this.error = err?.error?.errorMessage ?? err?.error?.message ?? err?.message ?? 'Failed to delete product';
         this.isDeleting = false;
         this.closeDeleteModal();
       }
