@@ -40,7 +40,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
     this.userSub = this.us.user$.subscribe((data) => {
       if (data) {
         this.user = data;
-        
+
         if (!this.editing) {
           this.form.patchValue({
             username: data.name || (data as any).username || '',
@@ -82,15 +82,15 @@ export class ProfileComponent implements OnInit, OnDestroy {
     reader.readAsDataURL(this.selectedAvatar);
   }
 
-  editProfile(): void { 
-    this.editing = true; 
+  editProfile(): void {
+    this.editing = true;
   }
 
   cancelEdit(): void {
     this.editing = false;
     this.selectedAvatar = null;
     this.error = '';
-    
+
     if (this.user) {
       this.form.patchValue({
         username: this.user.name || (this.user as any).username || '',
@@ -103,24 +103,25 @@ export class ProfileComponent implements OnInit, OnDestroy {
   }
 
   saveProfile(): void {
-  if (this.form.invalid) return;
-  this.loading = true;
-  this.error = '';
+    if (this.form.invalid) return;
+    this.loading = true;
+    this.error = '';
 
-  if (this.selectedAvatar) {
-    this.mediaService.uploadImages([this.selectedAvatar]).subscribe({
-      next: (urls) => this.updateBackend(urls[0]),
-      error: () => {
-        this.loading = false;
-        this.error = 'Failed to upload avatar.';
-      }
-    });
-  } else {
-    // Pass the existing user's avatar path intact
-    const currentAvatar = this.user?.avatarUrl || '';
-    this.updateBackend(currentAvatar);
+    if (this.selectedAvatar) {
+      this.mediaService.uploadImages([this.selectedAvatar]).subscribe({
+        next: (urls) => this.updateBackend(urls[0]),
+        error: (err) => {
+          this.loading = false;
+          // Adjust 'message' to match the field name inside your ErrorResponse Java class (e.g., message, error, errorMessage)
+          this.error = err?.error?.message || err?.error?.error || 'Failed to upload avatar.';
+        }
+      });
+    } else {
+      // Pass the existing user's avatar path intact
+      const currentAvatar = this.user?.avatarUrl || '';
+      this.updateBackend(currentAvatar);
+    }
   }
-}
 
   private updateBackend(avatarUrl: string): void {
     const values = this.form.getRawValue();
@@ -128,7 +129,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
       username: values.username,
       email: values.email,
       avatarUrl: avatarUrl,
-      role: values.role 
+      role: values.role
     }).subscribe({
       next: (updatedUser: ProfileResponse) => {
         const normalizedUser: ProfileResponse = {

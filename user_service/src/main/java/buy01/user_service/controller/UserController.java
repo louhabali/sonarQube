@@ -2,6 +2,7 @@ package buy01.user_service.controller;
 
 import buy01.user_service.dto.ProfileRequest;
 import buy01.user_service.dto.ProfileResponse;
+import buy01.user_service.model.Role;
 import buy01.user_service.service.UserService;
 import lombok.RequiredArgsConstructor;
 import jakarta.validation.Valid;
@@ -29,13 +30,13 @@ public class UserController {
 
     @PostMapping("/login")
     public Map<String, Object> login(@RequestBody LoginRequest request) {
-        
+        System.out.println("Login attempt for email: " + request.getEmail());
         return us.login(request.getEmail(), request.getPassword());
     }
     @GetMapping("/profile")
     public ProfileResponse profile(
             @RequestHeader("X-User-Id") String userId) {
-        
+           System.out.println("Fetching profile for userId: " + userId);
         return us.getProfile(userId);
     }
     @PutMapping("/profile")
@@ -54,7 +55,7 @@ public class UserController {
 
     static class RegisterRequest {
         @NotEmpty(message = "Username is required")
-        @Pattern(regexp = "^[\\w]{3,20}$", message = "Username must be between 3 and 20 characters and contain only letters, numbers, and underscores")
+        @Pattern(regexp = "^[a-zA-Z0-9_]{3,20}$", message = "Username must be between 3 and 20 characters and contain only letters, numbers, and underscores")
         private String username;
         @Email(message = "Invalid email format")
         @Pattern(regexp = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$", message = "Invalid email format")

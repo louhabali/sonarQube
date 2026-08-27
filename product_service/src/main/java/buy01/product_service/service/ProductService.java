@@ -6,10 +6,12 @@ import buy01.product_service.model.Product;
 import buy01.product_service.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
 
+
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
+
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -23,10 +25,9 @@ public class ProductService {
     private final MediaClient mediaClient;
 
     private static final List<String> ALLOWED_IMAGE_TYPES = Arrays.asList(
-            "image/jpeg", "image/png", "image/webp", "image/gif");
-    private static final long MAX_FILE_SIZE_BYTES = 2L * 1024 * 1024; // 2MB
+            "image/jpeg", "image/png", "image/webp", "image/gif", "image/avif", "image/x-avif");
+    private static final long MAX_FILE_SIZE_BYTES = 2 * 1024 * 1024; // 2MB
     private static final int MAX_IMAGES_COUNT = 5;
-    
 
     public List<Product> getAllProducts() {
         return repository.findAll();
@@ -116,14 +117,14 @@ public class ProductService {
         return repository.save(product);
     }
 
-    public void deleteProduct(String id, String userId) {
+    public void deleteProduct(String id, String userId, String userRole) {
         Product product = getProduct(id);
         verifyOwnership(product, userId);
         repository.delete(product);
     }
 
     public void deleteProductsByUserId(String userId) {
-       
+        System.out.println("DELETAAAAAAAAAAWWWWWWWWWWWWWWWWWWWWWWWWWW :" + userId);
         if (userId != null && !userId.isBlank()) {
             repository.deleteByUserId(userId);
         }
@@ -132,7 +133,6 @@ public class ProductService {
     private void verifyOwnership(Product product, String userId) {
         validateUserData(userId);
 
-        
         boolean isOwner = product.getUserId() != null && product.getUserId().equals(userId);
 
         if (!isOwner) {
@@ -208,7 +208,7 @@ public class ProductService {
             if (contentType == null || !ALLOWED_IMAGE_TYPES.contains(contentType.toLowerCase())) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                         "Invalid file type for '" + file.getOriginalFilename()
-                                + "'. Only JPG, PNG, WEBP, and GIF are allowed.");
+                                + "'. Only JPG, PNG, WEBP, GIF, and AVIF are allowed.");
             }
 
             if (file.getSize() > MAX_FILE_SIZE_BYTES) {
@@ -219,6 +219,6 @@ public class ProductService {
     }
 
     private boolean hasValidImages(MultipartFile[] images) {
-        return images != null && images.length > 0 && !images[0].isEmpty() ;
+        return images != null && images.length > 0 && !images[0].isEmpty();
     }
 }

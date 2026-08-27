@@ -96,12 +96,6 @@ interface ErrorDetails {
   }
 
   goBack(): void {
-     
-    
-      if (this.authService.isLoggedIn()) {
-        this.routery.navigate(['/']);
-      }else {
-        this.routery.navigate(['/login']);
-      }
-  }
+  this.routery.navigate(['/']);
+}
 }

@@ -45,6 +45,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
     this.router.navigate(['/login']);
   }
 
+  
   ngOnDestroy(): void {
     if (this.userSub) {
       this.userSub.unsubscribe();

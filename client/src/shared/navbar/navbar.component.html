@@ -30,7 +30,7 @@
   <div class="flex items-center gap-4">
     
     <!-- System Access Status Pill -->
-    <span class="hidden md:inline-block bg-[#001830]/5 text-[#001830] text-[10px] font-mono uppercase tracking-widest px-3 py-1.5 font-bold rounded-md border border-[#001830]/10">
+    <span *ngIf="username" class="hidden md:inline-block bg-[#001830]/5 text-[#001830] text-[10px] font-mono uppercase tracking-widest px-3 py-1.5 font-bold rounded-md border border-[#001830]/10">
       Verified: {{ username }}
     </span>
 
@@ -53,11 +53,12 @@
     </div>
 
     <!-- Exit / Sign Out -->
-    <button  (click)="logout()" 
+    <button (click)="logout()" 
             title="Sign Out"
             class="text-[10px] font-mono font-bold uppercase tracking-widest text-red-600 hover:text-red-700 bg-red-50 hover:bg-red-100 border border-red-200 px-3 py-1.5 rounded-md transition-colors">
       Exit
     </button>
+ 
 
   </div>
 </header>

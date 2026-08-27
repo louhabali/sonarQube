@@ -25,7 +25,8 @@ import buy01.user_service.model.User;
 import buy01.user_service.producer.UserEventProducer;
 import buy01.user_service.repo.UserRepository;
 import buy01.user_service.security.JwtUtil;
-
+import buy01.user_service.service.UserBlacklistService;
+import buy01.user_service.service.UserService;
 
 @ExtendWith(MockitoExtension.class)
 class UserServiceTests {
@@ -70,7 +71,7 @@ class UserServiceTests {
         when(passwordEncoder.encode("secret123")).thenReturn("encoded-password");
 
         Map<String, Object> result = userService.register("alice", "alice@example.com", "secret123", "CLIENT", "avatar.png");
-
+        // cc
         assertThat(result).containsEntry("success", true);
         assertThat(result).containsEntry("message", "User registered successfully");
         verify(userRepository).save(any(User.class));
@@ -79,7 +80,7 @@ class UserServiceTests {
     @Test
     void shouldThrowWhenEmailAlreadyExists() {
         when(userRepository.findByEmail("alice@example.com")).thenReturn(Optional.of(user));
-
+        
         BadRequestException exception = assertThrows(
                 BadRequestException.class,
                 () -> userService.register("alice", "alice@example.com", "secret123", "CLIENT", "avatar.png"));

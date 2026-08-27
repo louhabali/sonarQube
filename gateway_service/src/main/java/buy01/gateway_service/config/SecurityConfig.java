@@ -17,10 +17,6 @@ public class SecurityConfig {
         return http
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
                 .cors(Customizer.withDefaults())
-                .httpBasic(ServerHttpSecurity.HttpBasicSpec::disable)
-                .formLogin(ServerHttpSecurity.FormLoginSpec::disable)
-                .logout(ServerHttpSecurity.LogoutSpec::disable)
-
                 .authorizeExchange(exchange -> exchange
                         .pathMatchers("/auth/login", "/auth/register").permitAll()
                         .anyExchange().permitAll()

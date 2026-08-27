@@ -85,6 +85,7 @@ class ProductServiceTest {
                 verify(repository).findAll();
         }
 
+        // test without imagess
         @Test
         void shouldCreateProductWithImages() {
                 Product expected = Product.builder()
@@ -94,7 +95,7 @@ class ProductServiceTest {
                                 .price(1999.99)
                                 .quantity(5)
                                 .userId("seller-1")
-                                .imageUrls(List.of("img1.jpg"))
+                                .imageUrls(List.of("uploaded.jpg"))
                                 .build();
 
                 when(mediaClient.uploadImages(any(MultipartFile[].class)))
@@ -168,7 +169,7 @@ class ProductServiceTest {
         void shouldDeleteProduct() {
                 when(repository.findById("1")).thenReturn(Optional.of(product));
 
-                service.deleteProduct("1", "seller-1");
+                service.deleteProduct("1", "seller-1", "SELLER");
 
                 verify(repository).delete(product);
         }
