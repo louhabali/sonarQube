@@ -168,27 +168,29 @@ pipeline {
             sh 'rm -f .env'
         }
         success {
-    script {
-        if (currentBuild.rawBuild.getCause(hudson.triggers.TimerTrigger.TimerTriggerCause)) {
+            script {
+                if (env.BRANCH_NAME == 'main' || env.GIT_BRANCH == 'origin/main') {
+                    emailext (
+                        to: "${env.EMAIL}",
+                        subject: "✅ SUCCESS & DEPLOYED: ${env.JOB_NAME} [Build #${env.BUILD_NUMBER}]",
+                        body: "Pipeline passed, quality gates cleared, and changes successfully deployed to ${env.DEPLOY_DIR}.\n\nLogs: ${env.BUILD_URL}"
+                    )
+                } else {
+                    emailext (
+                        to: "${env.EMAIL}",
+                        subject: "✅ PR TESTS PASSED: ${env.JOB_NAME} [Build #${env.BUILD_NUMBER}]",
+                        body: "Pull request branch tests and SonarQube quality gate passed successfully! Safe to merge into main.\n\nLogs: ${env.BUILD_URL}"
+                    )
+                }
+            }
+        }
+        failure {
             emailext (
-                to: "${env.EMAIL}, ${env.EMAIL2}",
-                subject: "🔎 SONARQUBE SCAN PASSED: ${env.JOB_NAME} [Build #${env.BUILD_NUMBER}]",
-                body: "Scheduled SonarQube health scan completed successfully and the quality gate passed.\n\nLogs: ${env.BUILD_URL}"
-            )
-        } else if (env.BRANCH_NAME == 'main' || env.GIT_BRANCH == 'origin/main') {
-            emailext (
-                to: "${env.EMAIL}, ${env.EMAIL2}",
-                subject: "✅ SUCCESS & DEPLOYED: ${env.JOB_NAME} [Build #${env.BUILD_NUMBER}]",
-                body: "Pipeline passed, quality gates cleared, and changes successfully deployed to ${env.DEPLOY_DIR}.\n\nLogs: ${env.BUILD_URL}"
-            )
-        } else {
-            emailext (
-                to: "${env.EMAIL}, ${env.EMAIL2}",
-                subject: "✅ CI PASSED: ${env.JOB_NAME} [Build #${env.BUILD_NUMBER}]",
-                body: "Tests and SonarQube quality gate passed successfully.\n\nLogs: ${env.BUILD_URL}"
+                to: "${env.EMAIL}",
+                subject: "🚨 FAILURE: ${env.JOB_NAME} [Build #${env.BUILD_NUMBER}]",
+                body: "Pipeline execution failed. Production environment was not modified.\n\nLogs: ${env.BUILD_URL}"
             )
         }
     }
-}
     }
 }
