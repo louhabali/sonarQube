@@ -41,7 +41,13 @@ pipeline {
 
                     steps {
                         dir('client') {
-                                sh 'npm ci --legacy-peer-deps --no-audit --no-fund && npm run test:ci'
+                    sh '''
+                        apk add --no-cache chromium
+                        export CHROME_BIN=/usr/bin/chromium-browser
+
+                        npm ci --legacy-peer-deps --no-audit --no-fund
+                        npm run test:ci
+                    '''
                         }
                     }
                     // agent {
