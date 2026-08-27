@@ -1,11 +1,12 @@
 pipeline {
     agent any
 
-  options {
-    ansiColor('xterm')
-    timestamps()
-    disableConcurrentBuilds()
-}
+    options {
+        ansiColor('xterm')
+        timestamps()
+        disableConcurrentBuilds()
+    }
+
     environment {
         APP_NAME        = '01e_com'
         COMPOSE         = 'docker compose -p 01e_com'
@@ -15,13 +16,13 @@ pipeline {
         SONAR_HOST_URL  = 'http://sonarqube:9000'
     }
 
-   triggers {
-    githubPush()
+    triggers {
+        githubPush()
 
-    // Weekly SonarQube health scan.
-    // Jenkins hashes the job name to avoid all jobs running simultaneously.
-    cron('H H * * 0')
-}
+        // Weekly SonarQube health scan.
+        // Jenkins hashes the job name to avoid all jobs running simultaneously.
+        cron('H H * * 0')
+    }
 
     stages {
         stage('Checkout & Setup Env') {
@@ -124,7 +125,7 @@ pipeline {
                 sh '${COMPOSE} build'
             }
         }
-    //
+
         stage('Debug Env') {
             steps {
                 sh 'echo "BRANCH_NAME: ${BRANCH_NAME}"'
@@ -133,34 +134,34 @@ pipeline {
         }
 
         stage('Deploy Application') {
-    when {
-        allOf {
-            anyOf {
-                branch 'main'
-                environment name: 'CHANGE_TARGET', value: 'main'
-                expression { env.GIT_BRANCH?.endsWith('main') }
+            when {
+                allOf {
+                    anyOf {
+                        branch 'main'
+                        environment name: 'CHANGE_TARGET', value: 'main'
+                        expression { env.GIT_BRANCH?.endsWith('main') }
+                    }
+
+                    // Never deploy from a scheduled SonarQube scan.
+                    not {
+                        triggeredBy 'TimerTrigger'
+                    }
+                }
             }
 
-            // Never deploy from a scheduled SonarQube scan.
-            not {
-                triggeredBy 'TimerTrigger'
+            steps {
+                echo "Deploying service stack to ${DEPLOY_DIR}..."
+                sh '''
+                    mkdir -p ${DEPLOY_DIR}
+                    cp docker-compose.yml ${DEPLOY_DIR}/
+                    cp .env ${DEPLOY_DIR}/.env
+
+                    cd ${DEPLOY_DIR}
+                    ${COMPOSE} up -d --remove-orphans
+                    ${COMPOSE} ps
+                '''
             }
         }
-    }
-
-    steps {
-        echo "Deploying service stack to ${DEPLOY_DIR}..."
-        sh '''
-            mkdir -p ${DEPLOY_DIR}
-            cp docker-compose.yml ${DEPLOY_DIR}/
-            cp .env ${DEPLOY_DIR}/.env
-
-            cd ${DEPLOY_DIR}
-            ${COMPOSE} up -d --remove-orphans
-            ${COMPOSE} ps
-        '''
-    }
-}
     }
 
     post {
@@ -169,28 +170,37 @@ pipeline {
         }
         success {
             script {
-                if (env.BRANCH_NAME == 'main' || env.GIT_BRANCH == 'origin/main') {
+                def isTimerTrigger = currentBuild.buildCauses.any { cause ->
+                    cause._class.contains('TimerTrigger')
+                }
+
+                if (isTimerTrigger) {
                     emailext (
-                        to: "${env.EMAIL}",
+                        to: "${env.EMAIL}, ${env.EMAIL2}",
+                        subject: "🔎 SONARQUBE SCAN PASSED: ${env.JOB_NAME} [Build #${env.BUILD_NUMBER}]",
+                        body: "Scheduled SonarQube health scan completed successfully and the quality gate passed.\n\nLogs: ${env.BUILD_URL}"
+                    )
+                } else if (env.BRANCH_NAME == 'main' || env.GIT_BRANCH == 'origin/main') {
+                    emailext (
+                        to: "${env.EMAIL}, ${env.EMAIL2}",
                         subject: "✅ SUCCESS & DEPLOYED: ${env.JOB_NAME} [Build #${env.BUILD_NUMBER}]",
                         body: "Pipeline passed, quality gates cleared, and changes successfully deployed to ${env.DEPLOY_DIR}.\n\nLogs: ${env.BUILD_URL}"
                     )
                 } else {
                     emailext (
-                        to: "${env.EMAIL}",
-                        subject: "✅ PR TESTS PASSED: ${env.JOB_NAME} [Build #${env.BUILD_NUMBER}]",
-                        body: "Pull request branch tests and SonarQube quality gate passed successfully! Safe to merge into main.\n\nLogs: ${env.BUILD_URL}"
+                        to: "${env.EMAIL}, ${env.EMAIL2}",
+                        subject: "✅ CI PASSED: ${env.JOB_NAME} [Build #${env.BUILD_NUMBER}]",
+                        body: "Tests and SonarQube quality gate passed successfully.\n\nLogs: ${env.BUILD_URL}"
                     )
                 }
             }
         }
         failure {
             emailext (
-                to: "${env.EMAIL}",
+                to: "${env.EMAIL}, ${env.EMAIL2}",
                 subject: "🚨 FAILURE: ${env.JOB_NAME} [Build #${env.BUILD_NUMBER}]",
                 body: "Pipeline execution failed. Production environment was not modified.\n\nLogs: ${env.BUILD_URL}"
             )
         }
-    }
     }
 }
