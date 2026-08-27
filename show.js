@@ -14,6 +14,7 @@ console.clear();
 console.log(`${cyan}${bold}🚀 STARTING 01E-COM MICROSERVICES...${reset}\n`);
 
 try {
+  // Check if Docker is installed
   // Run docker compose up -d
   execSync('docker compose up -d', { stdio: 'inherit' });
 } catch (error) {
