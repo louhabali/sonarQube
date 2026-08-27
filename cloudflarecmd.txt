@@ -4,6 +4,8 @@
 .\cloudflared.exe tunnel --url http://127.0.0.1:8081
 // with closing terminal 
 nohup ./cloudflared tunnel --url http://localhost:8085 > cloudflare.log 2>&1 &
+//
+//
 docker ps -aq | grep -v -E "$(docker ps -aq --filter 'name=jenkins' --filter 'name=sonarqube' --filter 'name=sonar_db')" | xargs -r docker rm -f
 
 ┌────────────────────────────────────────────────────────────────────────┐
