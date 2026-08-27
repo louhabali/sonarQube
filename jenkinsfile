@@ -11,6 +11,7 @@ pipeline {
         COMPOSE         = 'docker compose -p 01e_com'
         DEPLOY_DIR      = '/opt/01e_com'
         EMAIL           = 'louhabali@gmail.com'
+        EMAIL2          = 'ismailichi29@gmail.com'
         SONAR_HOST_URL  = 'http://sonarqube:9000'
     }
 
