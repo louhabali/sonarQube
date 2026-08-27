@@ -103,7 +103,7 @@ public class UserService {
         if (profile.getEmail() == null || profile.getEmail().trim().isEmpty()) {
             throw new BadRequestException("Email cannot be empty");
         }
-        if (!profile.getRole().name().equals("CLIENT") && !profile.getRole().name().equals("SELLER")) {
+        if (profile.getRole().name()!="CLIENT" && profile.getRole().name()!="SELLER") {
             throw new BadRequestException("Invalid role. Must be CLIENT or SELLER");
         }   
 

@@ -26,7 +26,8 @@ console.log(`${bold}${yellow}                       🚀 01E-COM MICROSERVICES R
 console.log(`${cyan}========================================================================================${reset}`);
 
 const services = [
-  { name: 'Frontend (Angular)', status: '● Running', port: '8443 / 8081', url: 'https://localhost:8443 - http://localhost:8081', color: green },
+  { name: 'Frontend (Angular)', status: '● Running', port: '8443 / 8088', url: 'https://localhost:8443 - http://localhost:8088', color: green },
+  { name: 'Jenkins',             status: '● Running', port: '8090',        url: 'http://localhost:8090', color: magenta },
   { name: 'Spring Gateway',     status: '● Running', port: '8089',        url: 'https://localhost:8089', color: magenta },
   { name: 'User Service',       status: '● Running', port: '8081',        url: 'http://user-service:8081', color: yellow },
   { name: 'Product Service',    status: '● Running', port: '8082',        url: 'http://product-service:8082', color: yellow },
