@@ -33,7 +33,7 @@ pipeline {
                 stage('Angular Frontend Tests') {
                     agent {
                         docker {
-                            image 'zenika/alpine-chrome:with-node'
+                            image 'node:22-alpine'
                             args '-u 0 -v /tmp/npm-cache:/root/.npm'
                             reuseNode true
                         }
