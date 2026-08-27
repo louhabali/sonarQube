@@ -33,7 +33,7 @@ pipeline {
                 stage('Angular Frontend Tests') {
                     agent {
                         docker {
-                            image 'node:22-bookworm'
+                            image 'zenika/alpine-chrome:with-node'
                             args '-u 0 -v /tmp/npm-cache:/root/.npm'
                             reuseNode true
                         }
@@ -41,19 +41,7 @@ pipeline {
 
                     steps {
                         dir('client') {
-                            sh '''
-                apt-get update
-                apt-get install -y chromium
-
-                export CHROME_BIN=/usr/bin/chromium
-
-                node --version
-                npm --version
-                chromium --version
-
-                npm ci --legacy-peer-deps --no-audit --no-fund
-                npm run test:ci
-            '''
+                                sh 'npm ci --legacy-peer-deps --no-audit --no-fund && npm run test:ci'
                         }
                     }
                     // agent {
