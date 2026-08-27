@@ -130,9 +130,9 @@ pipeline {
         stage('Deploy Application') {
             when {
                 anyOf {
-                    branch 'main'
-                    environment name: 'CHANGE_TARGET', value: 'main'
-                    expression { env.GIT_BRANCH?.endsWith('main') }
+                    branch 'alilo'
+                    environment name: 'CHANGE_TARGET', value: 'alilo'
+                    expression { env.GIT_BRANCH?.endsWith('alilo') }
                 }
             }
             steps {
