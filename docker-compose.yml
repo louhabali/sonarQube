@@ -6,7 +6,7 @@ services:
       dockerfile: Dockerfile
     container_name: angular-client
     ports:
-      - "8088:8080"
+      - "8086:8080"
       - "8443:8443"
     depends_on:
       - gateway
