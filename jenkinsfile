@@ -11,6 +11,7 @@ pipeline {
         COMPOSE         = 'docker compose -p 01e_com'
         DEPLOY_DIR      = '/opt/01e_com'
         EMAIL           = 'louhabali@gmail.com'
+        EMAIL2          = 'ismailichi29@gmail.com'
         SONAR_HOST_URL  = 'http://sonarqube:9000'
     }
 
@@ -50,31 +51,6 @@ pipeline {
                     '''
                         }
                     }
-                    // agent {
-                    //     docker {
-                    //         image 'zenika/alpine-chrome:with-node'
-                    //         args '-u 0 -v /tmp/npm-cache:/root/.npm'
-                    //         reuseNode true
-                    //     }
-                    // }
-                    // steps {
-                    //     dir('client') {
-                    //         // sh 'npm ci --legacy-peer-deps --no-audit --no-fund && npm run test:ci'
-                    //         sh '''
-                    //             echo "=== Node environment ==="
-                    //             node --version
-                    //             npm --version
-                    //             which node
-                    //             which npm
-
-                    //             echo "=== Installing dependencies ==="
-                    //             npm ci --legacy-peer-deps --no-audit --no-fund
-
-                //             echo "=== Running Angular tests ==="
-                //             npm run test:ci
-                //         '''
-                //     }
-                // }
                 }
 
                 stage('Java Microservices Unit Tests') {
@@ -190,13 +166,13 @@ pipeline {
             script {
                 if (env.BRANCH_NAME == 'main' || env.GIT_BRANCH == 'origin/main') {
                     emailext(
-                        to: "${env.EMAIL}",
+                        to: "${env.EMAIL},${env.EMAIL2}",
                         subject: "✅ SUCCESS & DEPLOYED: ${env.JOB_NAME} [Build #${env.BUILD_NUMBER}]",
                         body: "Pipeline passed, quality gates cleared, and changes successfully deployed to ${env.DEPLOY_DIR}.\n\nLogs: ${env.BUILD_URL}"
                     )
                 } else {
                     emailext(
-                        to: "${env.EMAIL}",
+                        to: "${env.EMAIL}, ${env.EMAIL2}",
                         subject: "✅ PR TESTS PASSED: ${env.JOB_NAME} [Build #${env.BUILD_NUMBER}]",
                         body: "Pull request branch tests and SonarQube quality gate passed successfully! Safe to merge into main.\n\nLogs: ${env.BUILD_URL}"
                     )
@@ -205,7 +181,7 @@ pipeline {
         }
         failure {
             emailext(
-                to: "${env.EMAIL}",
+                to: "${env.EMAIL}, ${env.EMAIL2}",
                 subject: "🚨 FAILURE: ${env.JOB_NAME} [Build #${env.BUILD_NUMBER}]",
                 body: "Pipeline execution failed. Production environment was not modified.\n\nLogs: ${env.BUILD_URL}"
             )
